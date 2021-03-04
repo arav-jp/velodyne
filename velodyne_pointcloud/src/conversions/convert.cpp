@@ -154,7 +154,15 @@ void Convert::processScan(const velodyne_msgs::msg::VelodyneScan::SharedPtr scan
   }
 
   // allocate a point cloud with same time and frame ID as raw data
-  container_ptr_->setup(scanMsg);
+  // container_ptr_->setup(scanMsg);
+
+  auto copyScanMsg = std::make_shared<velodyne_msgs::msg::VelodyneScan>();
+  *copyScanMsg = *scanMsg;
+  auto time = rclcpp::Clock().now();
+  copyScanMsg->header.stamp = time;
+  container_ptr_->setup(copyScanMsg);
+    
+
 
   // process each packet provided by the driver
   for (size_t i = 0; i < scanMsg->packets.size(); ++i) {
@@ -162,7 +170,10 @@ void Convert::processScan(const velodyne_msgs::msg::VelodyneScan::SharedPtr scan
   }
 
   // publish the accumulated cloud message
-  diag_topic_->tick(scanMsg->header.stamp);
+  // diag_topic_->tick(scanMsg->header.stamp);
+
+  diag_topic_->tick(time);
+
   output_->publish(container_ptr_->finishCloud());
 }
 
